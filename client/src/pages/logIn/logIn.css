@@ -1,0 +1,30 @@
+.container-log-in {
+    width: 100%;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.log-in {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    row-gap: 15px;
+    border-radius: 10px;
+}
+
+.buttonsd {
+    column-gap: 5px;
+    display: flex;
+}
+
+.button-log-in {
+    background-color: palevioletred;
+    color: white;
+}
