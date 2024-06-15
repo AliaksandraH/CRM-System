@@ -1,8 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useHttp } from "../../hooks/http.hook";
+import { toast } from "react-toastify";
 import ModalRegistration from "../../components/modalRegistration/modalRegistration";
 import "./logIn.css";
 
-const LogIn = () => {
+const LogIn = ({ setResponsibleUser }) => {
+    const https = import.meta.env.VITE_REACT_APP_HTTPS;
+    const { request } = useHttp();
+    const navigate = useNavigate();
     const [user, setUser] = useState({
         email: "",
         password: "",
@@ -22,8 +28,32 @@ const LogIn = () => {
 
     const submitForm = (event) => {
         event.preventDefault();
-        setUser(user);
-        console.log(user);
+        onLogIn(user);
+    };
+
+    const onLogIn = async (user) => {
+        try {
+            const data = await request(`${https}/auth/login`, "POST", user);
+            if (data.message === "OK") {
+                setResponsibleUser(data.user);
+                navigate(`/home/${data.user._id}`);
+                toast.success("Успешный вход.", {
+                    position: "bottom-right",
+                    theme: "light",
+                });
+            } else {
+                toast.error(data.message, {
+                    position: "bottom-right",
+                    theme: "light",
+                });
+            }
+        } catch (error) {
+            toast.error("Произошла ошибка при выполнении запроса", {
+                position: "bottom-right",
+                theme: "light",
+            });
+            console.log(error);
+        }
     };
 
     return (

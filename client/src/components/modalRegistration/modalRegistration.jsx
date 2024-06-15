@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { useHttp } from "../../hooks/http.hook";
+import { toast } from "react-toastify";
 import "../../style/modal.css";
 
 const ModalRegistration = ({ closeModalRegistration }) => {
+    const https = import.meta.env.VITE_REACT_APP_HTTPS;
+    const { request } = useHttp();
     const [newUser, setNewUser] = useState({
         fullName: "",
         email: "",
@@ -24,13 +28,36 @@ const ModalRegistration = ({ closeModalRegistration }) => {
 
     const submitForm = (event) => {
         event.preventDefault();
-        console.log(newUser);
-        setNewUser({
-            fullName: "",
-            email: "",
-            password: "",
-        });
-        closeModalRegistration();
+        onRegister(newUser);
+    };
+
+    const onRegister = async (user) => {
+        try {
+            const data = await request(`${https}/auth/register`, "POST", user);
+            if (data.message === "OK") {
+                setNewUser({
+                    fullName: "",
+                    email: "",
+                    password: "",
+                });
+                closeModalRegistration();
+                toast.success("Регистрация прошла успешно.", {
+                    position: "bottom-right",
+                    theme: "light",
+                });
+            } else {
+                toast.error(data.message, {
+                    position: "bottom-right",
+                    theme: "light",
+                });
+            }
+        } catch (error) {
+            toast.error("Произошла ошибка при выполнении запроса", {
+                position: "bottom-right",
+                theme: "light",
+            });
+            console.log(error);
+        }
     };
 
     return (

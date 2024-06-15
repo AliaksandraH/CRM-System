@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import ModalCreateClient from "../../components/modalCreateClient/modalCreateClient";
 import "./home.css";
 
-const Home = () => {
+const Home = ({ responsibleUser }) => {
     const clientsDB = [
         {
             id: 1,
@@ -38,8 +41,19 @@ const Home = () => {
             status: "Отказ",
         },
     ];
-
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [modalShow, setModalShow] = useState(false);
+
+    useEffect(() => {
+        if (!responsibleUser._id || id !== responsibleUser._id) {
+            navigate(`/`);
+            toast.warn("Вы не вошли в систему.", {
+                position: "bottom-right",
+                theme: "light",
+            });
+        }
+    }, [responsibleUser]);
 
     const openModal = () => setModalShow(true);
     const closeModal = () => setModalShow(false);
