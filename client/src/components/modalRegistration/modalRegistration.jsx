@@ -52,7 +52,7 @@ const ModalRegistration = ({ closeModalRegistration }) => {
                 });
             }
         } catch (error) {
-            toast.error("Произошла ошибка при выполнении запроса", {
+            toast.error("Произошла ошибка при выполнении запроса.", {
                 position: "bottom-right",
                 theme: "light",
             });

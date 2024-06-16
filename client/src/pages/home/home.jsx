@@ -2,47 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useHttp } from "../../hooks/http.hook";
 import ModalCreateClient from "../../components/modalCreateClient/modalCreateClient";
 import "./home.css";
 
 const Home = ({ responsibleUser }) => {
-    const clientsDB = [
-        {
-            id: 1,
-            accountNumber: "001",
-            surname: "Иванов",
-            name: "Иван",
-            middleName: "Петрович",
-            birthDate: "1990-05-15",
-            inn: "123456789012",
-            fullNameResponsiblePerson: "Петрова Анна Сергеевна",
-            status: "В работе",
-        },
-        {
-            id: 2,
-            accountNumber: "002",
-            surname: "Петров",
-            name: "Петр",
-            middleName: "Сергеевич",
-            birthDate: "1985-10-20",
-            inn: "987654321098",
-            fullNameResponsiblePerson: "Сидоров Иван Васильевич",
-            status: "Сделка закрыта",
-        },
-        {
-            id: 3,
-            accountNumber: "003",
-            surname: "Сидорова",
-            name: "Анна",
-            middleName: "Ивановна",
-            birthDate: "1995-12-01",
-            inn: "555555555555",
-            fullNameResponsiblePerson: "Кузнецова Ольга Петровна",
-            status: "Отказ",
-        },
-    ];
+    const https = import.meta.env.VITE_REACT_APP_HTTPS;
     const { id } = useParams();
     const navigate = useNavigate();
+    const { request } = useHttp();
+    const [clients, setClients] = useState({});
+    const [clientsTable, setClientsTable] = useState("");
     const [modalShow, setModalShow] = useState(false);
 
     useEffect(() => {
@@ -52,22 +22,40 @@ const Home = ({ responsibleUser }) => {
                 position: "bottom-right",
                 theme: "light",
             });
+        } else {
+            getClients(responsibleUser);
         }
     }, [responsibleUser]);
 
     const openModal = () => setModalShow(true);
     const closeModal = () => setModalShow(false);
 
-    const [clients, setClients] = useState(clientsDB);
-
-    const сhangeStatus = (event, id) => {
-        console.log(id, event.target.value);
+    const сhangeStatus = async (event, id) => {
+        try {
+            const data = await request(
+                `${https}/client/changeStatusClient/${id}`,
+                "PUT",
+                JSON.stringify({ status: event.target.value })
+            );
+            if (data.message === "OK") {
+                toast.success("Статус изменён.", {
+                    position: "bottom-right",
+                    theme: "light",
+                });
+            }
+        } catch (error) {
+            toast.error("Произошла ошибка при изменении статуса.", {
+                position: "bottom-right",
+                theme: "light",
+            });
+            console.log(error);
+        }
     };
 
     const createTabel = (clients) => {
-        return clients.map((client) => {
+        const table = clients.map((client) => {
             return (
-                <tr key={client.id}>
+                <tr key={client._id}>
                     <td>{client.accountNumber}</td>
                     <td>{client.surname}</td>
                     <td>{client.name}</td>
@@ -78,7 +66,9 @@ const Home = ({ responsibleUser }) => {
                     <td>
                         <select
                             defaultValue={client.status}
-                            onChange={(event) => сhangeStatus(event, client.id)}
+                            onChange={(event) =>
+                                сhangeStatus(event, client._id)
+                            }
                         >
                             <option value="В работе">В работе</option>
                             <option value="Отказ">Отказ</option>
@@ -90,6 +80,30 @@ const Home = ({ responsibleUser }) => {
                 </tr>
             );
         });
+        setClientsTable(table);
+    };
+
+    const getClients = async (responsibleUser) => {
+        try {
+            const queryParams = new URLSearchParams({
+                fullName: responsibleUser.fullName,
+            }).toString();
+            const data = await request(
+                `${https}/client/getClients`,
+                "GET",
+                queryParams
+            );
+            if (data.message === "OK") {
+                setClients(data.data);
+                createTabel(data.data);
+            }
+        } catch (error) {
+            toast.error("Произошла ошибка при получении данных клиента.", {
+                position: "bottom-right",
+                theme: "light",
+            });
+            console.log(error);
+        }
     };
 
     return (
@@ -98,6 +112,8 @@ const Home = ({ responsibleUser }) => {
                 <ModalCreateClient
                     setClients={setClients}
                     closeModalCreateClient={closeModal}
+                    responsibleUser={responsibleUser}
+                    getClients={getClients}
                 />
             )}
             <button className="button-сreate-client" onClick={openModal}>
@@ -116,7 +132,7 @@ const Home = ({ responsibleUser }) => {
                         <th>Статус</th>
                     </tr>
                 </thead>
-                <tbody>{createTabel(clients)}</tbody>
+                <tbody>{clientsTable}</tbody>
             </table>
         </div>
     );

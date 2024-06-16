@@ -9,10 +9,12 @@ app.use(cors());
 dotenv.config();
 
 const auth = require("./routes/auth");
+const client = require("./routes/client");
 const connectDB = require("./connectMongo");
 
 app.use(bodyParser.json());
 app.use("/auth", auth);
+app.use("/client", client);
 
 const PORT = process.env.PORT || 3000;
 async function start() {

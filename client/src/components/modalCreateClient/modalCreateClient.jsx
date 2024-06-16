@@ -1,9 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useHttp } from "../../hooks/http.hook";
+import { toast } from "react-toastify";
 import "../../style/modal.css";
 
-const ModalCreateClient = ({ setClients, closeModalCreateClient }) => {
+const ModalCreateClient = ({
+    setClients,
+    closeModalCreateClient,
+    responsibleUser,
+    getClients,
+}) => {
+    const https = import.meta.env.VITE_REACT_APP_HTTPS;
+    const { request } = useHttp();
     const [newClient, setNewClient] = useState({
-        id: "",
         accountNumber: "",
         surname: "",
         name: "",
@@ -11,8 +19,14 @@ const ModalCreateClient = ({ setClients, closeModalCreateClient }) => {
         birthDate: "",
         inn: "",
         fullNameResponsiblePerson: "",
-        status: "В работе",
     });
+
+    useEffect(() => {
+        setNewClient({
+            ...newClient,
+            fullNameResponsiblePerson: responsibleUser.fullName,
+        });
+    }, []);
 
     const closeModal = (value) => {
         if (value.target.className === "modal") {
@@ -30,20 +44,40 @@ const ModalCreateClient = ({ setClients, closeModalCreateClient }) => {
 
     const submitForm = (event) => {
         event.preventDefault();
-        setClients((state) => [...state, newClient]);
-        console.log(newClient);
-        setNewClient({
-            id: "",
-            accountNumber: "",
-            surname: "",
-            name: "",
-            middleName: "",
-            birthDate: "",
-            inn: "",
-            fullNameResponsiblePerson: "",
-            status: "В работе",
-        });
-        closeModalCreateClient();
+        addClient(newClient);
+    };
+
+    const addClient = async (client) => {
+        try {
+            const data = await request(
+                `${https}/client/addClient`,
+                "POST",
+                client
+            );
+            if (data.message === "OK") {
+                getClients(responsibleUser);
+                toast.success("Пользователь добавлен успешно.", {
+                    position: "bottom-right",
+                    theme: "light",
+                });
+                setNewClient({
+                    accountNumber: "",
+                    surname: "",
+                    name: "",
+                    middleName: "",
+                    birthDate: "",
+                    inn: "",
+                    fullNameResponsiblePerson: "",
+                });
+                closeModalCreateClient();
+            }
+        } catch (error) {
+            toast.error("Произошла ошибка при выполнении запроса.", {
+                position: "bottom-right",
+                theme: "light",
+            });
+            console.log(error);
+        }
     };
 
     return (
