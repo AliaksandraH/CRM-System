@@ -6,26 +6,35 @@ import { useHttp } from "../../hooks/http.hook";
 import ModalCreateClient from "../../components/modalCreateClient/modalCreateClient";
 import "./home.css";
 
-const Home = ({ responsibleUser }) => {
+const Home = () => {
     const https = import.meta.env.VITE_REACT_APP_HTTPS;
     const { id } = useParams();
     const navigate = useNavigate();
     const { request } = useHttp();
     const [clients, setClients] = useState({});
-    const [clientsTable, setClientsTable] = useState("");
+    const [clientsTable, setClientsTable] = useState([]);
     const [modalShow, setModalShow] = useState(false);
+    const [responsibleUser, setResponsibleUser] = useState({});
 
     useEffect(() => {
-        if (!responsibleUser._id || id !== responsibleUser._id) {
+        const responsibleUserLocalStorage = JSON.parse(
+            localStorage.getItem("responsibleUser")
+        );
+        if (
+            !responsibleUserLocalStorage ||
+            !responsibleUserLocalStorage._id ||
+            id !== responsibleUserLocalStorage._id
+        ) {
             navigate(`/`);
             toast.warn("Вы не вошли в систему.", {
                 position: "bottom-right",
                 theme: "light",
             });
         } else {
-            getClients(responsibleUser);
+            setResponsibleUser(responsibleUserLocalStorage);
+            getClients(responsibleUserLocalStorage);
         }
-    }, [responsibleUser]);
+    }, []);
 
     const openModal = () => setModalShow(true);
     const closeModal = () => setModalShow(false);
@@ -54,13 +63,19 @@ const Home = ({ responsibleUser }) => {
 
     const createTabel = (clients) => {
         const table = clients.map((client) => {
+            const date = new Date(client.birthDate);
+            const day = date.getDate().toString().padStart(2, "0");
+            const month = (date.getMonth() + 1).toString().padStart(2, "0");
+            const year = date.getFullYear();
+            const formattedDate = `${day}.${month}.${year}`;
+
             return (
                 <tr key={client._id}>
                     <td>{client.accountNumber}</td>
                     <td>{client.surname}</td>
                     <td>{client.name}</td>
                     <td>{client.middleName}</td>
-                    <td>{client.birthDate}</td>
+                    <td>{formattedDate}</td>
                     <td>{client.inn}</td>
                     <td>{client.fullNameResponsiblePerson}</td>
                     <td>
@@ -119,21 +134,25 @@ const Home = ({ responsibleUser }) => {
             <button className="button-сreate-client" onClick={openModal}>
                 Создать клиента
             </button>
-            <table className="table-client">
-                <thead>
-                    <tr>
-                        <th>Номер счета</th>
-                        <th>Фамилия</th>
-                        <th>Имя</th>
-                        <th>Отчество</th>
-                        <th>Дата рождения</th>
-                        <th>ИНН</th>
-                        <th>ФИО ответственного</th>
-                        <th>Статус</th>
-                    </tr>
-                </thead>
-                <tbody>{clientsTable}</tbody>
-            </table>
+            {clientsTable.length > 0 ? (
+                <table className="table-client">
+                    <thead>
+                        <tr>
+                            <th>Номер счета</th>
+                            <th>Фамилия</th>
+                            <th>Имя</th>
+                            <th>Отчество</th>
+                            <th>Дата рождения</th>
+                            <th>ИНН</th>
+                            <th>ФИО ответственного</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>{clientsTable}</tbody>
+                </table>
+            ) : (
+                <p className="text">У вас нет пока клиентов.</p>
+            )}
         </div>
     );
 };

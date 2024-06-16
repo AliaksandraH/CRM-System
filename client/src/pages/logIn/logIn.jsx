@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHttp } from "../../hooks/http.hook";
 import { toast } from "react-toastify";
 import ModalRegistration from "../../components/modalRegistration/modalRegistration";
 import "./logIn.css";
 
-const LogIn = ({ setResponsibleUser }) => {
+const LogIn = () => {
     const https = import.meta.env.VITE_REACT_APP_HTTPS;
     const { request } = useHttp();
     const navigate = useNavigate();
@@ -14,6 +14,10 @@ const LogIn = ({ setResponsibleUser }) => {
         password: "",
     });
     const [modalShow, setModalShow] = useState(false);
+
+    // useEffect(() => {
+    //     localStorage.removeItem("responsibleUser");
+    // }, []);
 
     const openModal = () => setModalShow(true);
     const closeModal = () => setModalShow(false);
@@ -35,7 +39,10 @@ const LogIn = ({ setResponsibleUser }) => {
         try {
             const data = await request(`${https}/auth/login`, "POST", user);
             if (data.message === "OK") {
-                setResponsibleUser(data.user);
+                localStorage.setItem(
+                    "responsibleUser",
+                    JSON.stringify(data.user)
+                );
                 navigate(`/home/${data.user._id}`);
                 toast.success("Успешный вход.", {
                     position: "bottom-right",

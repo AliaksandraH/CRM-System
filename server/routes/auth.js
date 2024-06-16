@@ -12,11 +12,17 @@ const validateFIO = (fullName) => {
 router.post("/register", async (req, res) => {
     try {
         const { fullName, email, password } = req.body;
-        const candidate = await User.findOne({ email });
-        if (candidate) {
+        const candidateEmail = await User.findOne({ email });
+        if (candidateEmail) {
             return res.status(200).json({
                 message:
                     "Пользователь с такой электронной почтой уже существует.",
+            });
+        }
+        const candidateFullName = await User.findOne({ fullName });
+        if (candidateFullName) {
+            return res.status(200).json({
+                message: "Пользователь с таким ФИО уже существует.",
             });
         }
         if (!validateFIO(fullName)) {

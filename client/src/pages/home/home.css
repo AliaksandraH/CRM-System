@@ -18,3 +18,9 @@
 .button-сreate-client {
     width: 80%;
 }
+
+.text {
+    font-size: 30px;
+    color: white;
+    font-weight: bold;
+}
